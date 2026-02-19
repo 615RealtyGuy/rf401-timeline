@@ -1,8 +1,19 @@
-/* RF401 Contract Timeline — localStorage CRUD Layer */
+/* RF401 Contract Timeline — Data Layer with Firestore Cloud Sync */
 
 var Store = (function () {
     var USER_KEY = 'rf401_user';
     var DEALS_KEY = 'rf401_deals';
+    var COLLECTION = 'deals';
+
+    // -----------------------------------------------------------------------
+    // Internal state
+    // -----------------------------------------------------------------------
+
+    var _user = null;       // current username string
+    var _cache = [];        // in-memory deal array (single source of truth for reads)
+    var _db = null;         // Firestore reference (set during init)
+    var _auth = null;       // Firebase Auth reference
+    var _ready = false;     // true once init() completes
 
     // -----------------------------------------------------------------------
     // Internal helpers
@@ -12,7 +23,6 @@ var Store = (function () {
         if (crypto && crypto.randomUUID) {
             return crypto.randomUUID();
         }
-        // Fallback for older browsers
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
             var r = Math.random() * 16 | 0;
             var v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -20,25 +30,166 @@ var Store = (function () {
         });
     }
 
-    function _loadDeals() {
+    function _findIndex(dealId) {
+        for (var i = 0; i < _cache.length; i++) {
+            if (_cache[i].id === dealId) return i;
+        }
+        return -1;
+    }
+
+    // -----------------------------------------------------------------------
+    // localStorage backup (offline fallback)
+    // -----------------------------------------------------------------------
+
+    function _persistLocal() {
+        try {
+            localStorage.setItem(DEALS_KEY, JSON.stringify(_cache));
+        } catch (e) {
+            console.warn('Store: localStorage write failed', e);
+        }
+    }
+
+    function _loadLocal() {
         try {
             var raw = localStorage.getItem(DEALS_KEY);
             return raw ? JSON.parse(raw) : [];
         } catch (e) {
-            console.error('Failed to load deals from localStorage:', e);
+            console.error('Store: localStorage read failed', e);
             return [];
         }
     }
 
-    function _saveDeals(deals) {
-        localStorage.setItem(DEALS_KEY, JSON.stringify(deals));
+    // -----------------------------------------------------------------------
+    // Firestore cloud helpers (fire-and-forget)
+    // -----------------------------------------------------------------------
+
+    function _syncToCloud(deal) {
+        if (!_db) return;
+        try {
+            _db.collection(COLLECTION).doc(deal.id).set(JSON.parse(JSON.stringify(deal)))
+                .catch(function (err) {
+                    console.warn('Store: cloud sync failed for ' + deal.id, err);
+                });
+        } catch (e) {
+            console.warn('Store: cloud sync error', e);
+        }
     }
 
-    function _findDealIndex(deals, dealId) {
-        for (var i = 0; i < deals.length; i++) {
-            if (deals[i].id === dealId) return i;
+    function _deleteFromCloud(dealId) {
+        if (!_db) return;
+        try {
+            _db.collection(COLLECTION).doc(dealId).delete()
+                .catch(function (err) {
+                    console.warn('Store: cloud delete failed for ' + dealId, err);
+                });
+        } catch (e) {
+            console.warn('Store: cloud delete error', e);
         }
-        return -1;
+    }
+
+    function _loadFromCloud() {
+        if (!_db || !_user) return Promise.resolve([]);
+        return _db.collection(COLLECTION)
+            .where('owner_name', '==', _user)
+            .get()
+            .then(function (snapshot) {
+                var deals = [];
+                snapshot.forEach(function (doc) {
+                    deals.push(doc.data());
+                });
+                // Sort newest first
+                deals.sort(function (a, b) {
+                    return (b.created_at || '').localeCompare(a.created_at || '');
+                });
+                return deals;
+            });
+    }
+
+    // -----------------------------------------------------------------------
+    // Migration: push existing localStorage deals to Firestore
+    // -----------------------------------------------------------------------
+
+    function _migrateLocalToCloud(localDeals) {
+        if (!_db || !_user || localDeals.length === 0) return;
+        console.log('Store: migrating ' + localDeals.length + ' local deals to Firestore');
+        localDeals.forEach(function (deal) {
+            // Tag with owner_name if not already set
+            if (!deal.owner_name) {
+                deal.owner_name = _user;
+            }
+            _syncToCloud(deal);
+        });
+    }
+
+    // -----------------------------------------------------------------------
+    // Init — async, called once at boot
+    // -----------------------------------------------------------------------
+
+    function init() {
+        // Grab Firebase references
+        if (typeof FirebaseConfig !== 'undefined') {
+            _db = FirebaseConfig.db;
+            _auth = FirebaseConfig.auth;
+        }
+
+        // Load username from localStorage
+        _user = localStorage.getItem(USER_KEY) || null;
+
+        // If no user, just load local deals and return
+        if (!_user) {
+            _cache = _loadLocal();
+            _ready = true;
+            return Promise.resolve();
+        }
+
+        // If no Firebase available, fall back to localStorage
+        if (!_auth || !_db) {
+            console.warn('Store: Firebase not available, using localStorage only');
+            _cache = _loadLocal();
+            _ready = true;
+            return Promise.resolve();
+        }
+
+        // Sign in anonymously, then load from cloud
+        return _auth.signInAnonymously()
+            .then(function () {
+                return _loadFromCloud();
+            })
+            .then(function (cloudDeals) {
+                var localDeals = _loadLocal();
+
+                if (cloudDeals.length > 0) {
+                    // Cloud has data — use it as source of truth
+                    _cache = cloudDeals;
+
+                    // Also push any local-only deals to cloud (merge)
+                    var cloudIds = {};
+                    cloudDeals.forEach(function (d) { cloudIds[d.id] = true; });
+                    var localOnly = localDeals.filter(function (d) { return !cloudIds[d.id]; });
+                    if (localOnly.length > 0) {
+                        localOnly.forEach(function (d) {
+                            if (!d.owner_name) d.owner_name = _user;
+                            _cache.unshift(d);
+                        });
+                        _migrateLocalToCloud(localOnly);
+                    }
+                } else if (localDeals.length > 0) {
+                    // Cloud is empty but we have local data — migrate up
+                    _cache = localDeals;
+                    _migrateLocalToCloud(localDeals);
+                } else {
+                    // Both empty
+                    _cache = [];
+                }
+
+                _persistLocal();
+                _ready = true;
+            })
+            .catch(function (err) {
+                console.warn('Store: cloud init failed, using localStorage', err);
+                _cache = _loadLocal();
+                _ready = true;
+            });
     }
 
     // -----------------------------------------------------------------------
@@ -46,43 +197,45 @@ var Store = (function () {
     // -----------------------------------------------------------------------
 
     function getUser() {
-        return localStorage.getItem(USER_KEY) || null;
+        return _user || localStorage.getItem(USER_KEY) || null;
     }
 
     function setUser(username) {
+        _user = username;
         localStorage.setItem(USER_KEY, username);
     }
 
     function clearUser() {
+        _user = null;
+        _cache = [];
         localStorage.removeItem(USER_KEY);
     }
 
     // -----------------------------------------------------------------------
-    // Deals — CRUD
+    // Deals — CRUD (synchronous reads from cache, async cloud writes)
     // -----------------------------------------------------------------------
 
     function getAllDeals() {
-        return _loadDeals();
+        return _cache.slice(); // return copy
     }
 
     function getActiveDeals() {
-        return _loadDeals().filter(function (d) { return d.status !== 'archived'; });
+        return _cache.filter(function (d) { return d.status !== 'archived'; });
     }
 
     function getArchivedCount() {
-        return _loadDeals().filter(function (d) { return d.status === 'archived'; }).length;
+        return _cache.filter(function (d) { return d.status === 'archived'; }).length;
     }
 
     function getDeal(dealId) {
-        var deals = _loadDeals();
-        var idx = _findDealIndex(deals, dealId);
-        return idx >= 0 ? deals[idx] : null;
+        var idx = _findIndex(dealId);
+        return idx >= 0 ? _cache[idx] : null;
     }
 
     function createDeal(data) {
-        var deals = _loadDeals();
         var deal = {
             id: _generateId(),
+            owner_name: _user || '',
             name: data.name || 'Untitled Deal',
             property_address: data.property_address || '',
             buyer_name: data.buyer_name || '',
@@ -97,32 +250,33 @@ var Store = (function () {
             tasks: [],
             info_items: []
         };
-        deals.unshift(deal); // newest first
-        _saveDeals(deals);
+        _cache.unshift(deal);
+        _persistLocal();
+        _syncToCloud(deal);
         return deal;
     }
 
     function updateDeal(dealId, updates) {
-        var deals = _loadDeals();
-        var idx = _findDealIndex(deals, dealId);
+        var idx = _findIndex(dealId);
         if (idx < 0) return null;
 
         for (var key in updates) {
             if (updates.hasOwnProperty(key)) {
-                deals[idx][key] = updates[key];
+                _cache[idx][key] = updates[key];
             }
         }
-        deals[idx].updated_at = new Date().toISOString();
-        _saveDeals(deals);
-        return deals[idx];
+        _cache[idx].updated_at = new Date().toISOString();
+        _persistLocal();
+        _syncToCloud(_cache[idx]);
+        return _cache[idx];
     }
 
     function deleteDeal(dealId) {
-        var deals = _loadDeals();
-        var idx = _findDealIndex(deals, dealId);
+        var idx = _findIndex(dealId);
         if (idx < 0) return false;
-        deals.splice(idx, 1);
-        _saveDeals(deals);
+        _cache.splice(idx, 1);
+        _persistLocal();
+        _deleteFromCloud(dealId);
         return true;
     }
 
@@ -147,21 +301,21 @@ var Store = (function () {
     // -----------------------------------------------------------------------
 
     function updateTaskStatus(dealId, taskId, newStatus) {
-        var deals = _loadDeals();
-        var idx = _findDealIndex(deals, dealId);
+        var idx = _findIndex(dealId);
         if (idx < 0) return null;
 
-        var tasks = deals[idx].tasks || [];
+        var tasks = _cache[idx].tasks || [];
         for (var i = 0; i < tasks.length; i++) {
             if (tasks[i].id === taskId) {
                 tasks[i].status = newStatus;
                 break;
             }
         }
-        deals[idx].tasks = tasks;
-        deals[idx].updated_at = new Date().toISOString();
-        _saveDeals(deals);
-        return deals[idx];
+        _cache[idx].tasks = tasks;
+        _cache[idx].updated_at = new Date().toISOString();
+        _persistLocal();
+        _syncToCloud(_cache[idx]);
+        return _cache[idx];
     }
 
     // -----------------------------------------------------------------------
@@ -181,6 +335,7 @@ var Store = (function () {
     // -----------------------------------------------------------------------
 
     return {
+        init: init,
         getUser: getUser,
         setUser: setUser,
         clearUser: clearUser,

@@ -551,27 +551,31 @@ function _saveOffsetOverride(dealId, eventId) {
 document.addEventListener('DOMContentLoaded', function () {
     var page = document.body.dataset.page;
 
+    // Login page doesn't need cloud sync — handle immediately
     if (page === 'login') {
         initLoginPage();
         return;
     }
 
-    // Auth check
-    var user = Store.getUser();
-    if (!user) {
-        window.location.href = 'index.html';
-        return;
-    }
-
-    if (page === 'dashboard') {
-        initDashboard();
-    } else if (page === 'deal') {
-        var params = new URLSearchParams(window.location.search);
-        var dealId = params.get('id');
-        if (!dealId) {
-            window.location.href = 'dashboard.html';
+    // Initialize Store (async: signs into Firebase, loads deals from cloud)
+    Store.init().then(function () {
+        // Auth check
+        var user = Store.getUser();
+        if (!user) {
+            window.location.href = 'index.html';
             return;
         }
-        initDealDetail(dealId);
-    }
+
+        if (page === 'dashboard') {
+            initDashboard();
+        } else if (page === 'deal') {
+            var params = new URLSearchParams(window.location.search);
+            var dealId = params.get('id');
+            if (!dealId) {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+            initDealDetail(dealId);
+        }
+    });
 });
