@@ -3,7 +3,7 @@
 var Admin = (function () {
 
     // Admin username whitelist
-    var ADMIN_USERS = ['John'];
+    var ADMIN_USERS = ['615RealtyGuy'];
 
     // Internal state
     var _allDeals = [];
