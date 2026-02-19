@@ -21,8 +21,15 @@ var UI = (function () {
     function renderNav(username) {
         var el = document.getElementById('nav-right');
         if (!el) return;
+
+        var adminLink = '';
+        if (typeof Admin !== 'undefined' && Admin.isAdmin(username)) {
+            adminLink = '<a href="admin.html" class="nav-link nav-admin-link">Admin</a>';
+        }
+
         el.innerHTML =
             '<a href="dashboard.html" class="nav-link">Deals</a>' +
+            adminLink +
             '<span class="nav-user">' + esc(username) + '</span>' +
             '<button type="button" class="nav-link nav-logout-btn" id="logout-btn">Logout</button>';
     }

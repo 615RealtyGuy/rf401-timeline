@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deal — RF401 Timeline</title>
+    <title>Admin — RF401 Timeline</title>
     <link rel="icon" type="image/png" href="img/favicon.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <link rel="stylesheet" href="css/style.css?v=3">
 </head>
-<body data-page="deal">
+<body data-page="admin">
     <nav class="brand-nav">
         <div class="container nav-inner">
             <a href="dashboard.html" class="brand-link">
@@ -23,8 +23,25 @@
         </div>
     </nav>
 
-    <main class="container" id="deal-main">
-        <!-- Populated by JS: breadcrumb, deal header, tab nav, tab content -->
+    <main class="container">
+        <section class="page-header">
+            <h1>Admin Panel</h1>
+            <p class="text-secondary">Manage users and deals across all accounts</p>
+        </section>
+
+        <!-- Stats Cards -->
+        <section id="admin-stats">
+            <div class="empty-state"><p>Loading admin data...</p></div>
+        </section>
+
+        <!-- Filters -->
+        <section id="admin-filters"></section>
+
+        <!-- User List -->
+        <section id="admin-users"></section>
+
+        <!-- All Deals Table -->
+        <section id="admin-deals"></section>
     </main>
 
     <footer class="container site-footer">
@@ -40,12 +57,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.3/jspdf.umd.min.js"></script>
     <script src="js/clause-map.js"></script>
     <script src="js/store.js"></script>
     <script src="js/materializer.js"></script>
     <script src="js/calendar.js"></script>
-    <script src="js/pdf-export.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/app.js"></script>

@@ -1934,3 +1934,228 @@ footer.site-footer small {
     margin-top: 0.2rem;
 }
 
+/* ================================================================
+   Admin Panel
+   ================================================================ */
+
+/* Stats grid */
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-stat-card {
+    background: var(--rf-bg-card);
+    border: 1px solid var(--rf-border);
+    border-radius: var(--rf-radius);
+    padding: 1.25rem;
+    text-align: center;
+}
+
+.admin-stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.admin-text-gold { color: var(--rf-gold); }
+.admin-text-success { color: var(--rf-success); }
+.admin-text-muted { color: var(--rf-text-muted); }
+.admin-text-info { color: var(--rf-info); }
+
+.admin-stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--rf-text-muted);
+    margin-top: 0.25rem;
+}
+
+/* Filter bar */
+.admin-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--rf-bg-card);
+    border: 1px solid var(--rf-border);
+    border-radius: var(--rf-radius);
+}
+
+.admin-filter-select,
+.admin-search-input {
+    margin-bottom: 0 !important;
+    min-width: 180px;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+    background: var(--rf-bg-input);
+    border: 1px solid var(--rf-border);
+    color: var(--rf-text);
+    border-radius: var(--rf-radius-sm);
+    font-family: var(--rf-font);
+}
+
+.admin-filter-select:focus,
+.admin-search-input:focus {
+    border-color: var(--rf-border-focus);
+    outline: none;
+}
+
+.admin-search-input {
+    min-width: 250px;
+    flex: 1;
+}
+
+.admin-result-count {
+    margin-left: auto;
+    font-size: 0.8rem;
+    color: var(--rf-text-muted);
+    white-space: nowrap;
+}
+
+/* Section titles */
+.admin-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--rf-text);
+}
+
+.admin-section-count {
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--rf-text-muted);
+    margin-left: 0.5rem;
+}
+
+/* User cards grid */
+.admin-users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.admin-user-card {
+    background: var(--rf-bg-card);
+    border: 1px solid var(--rf-border);
+    border-radius: var(--rf-radius);
+    padding: 1rem;
+    text-align: center;
+    transition: border-color 0.15s;
+}
+
+.admin-user-card:hover {
+    border-color: var(--rf-gold);
+}
+
+.admin-user-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--rf-gold);
+    margin-bottom: 0.25rem;
+}
+
+.admin-user-count {
+    font-size: 0.8rem;
+    color: var(--rf-text-muted);
+    margin-bottom: 0.75rem;
+}
+
+.admin-badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    background: rgba(210, 181, 108, 0.15);
+    color: var(--rf-gold);
+    padding: 0.1rem 0.4rem;
+    border-radius: 8px;
+    vertical-align: middle;
+}
+
+/* Owner tag in table */
+.admin-owner-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(210, 181, 108, 0.1);
+    color: var(--rf-gold);
+    padding: 0.1rem 0.5rem;
+    border-radius: 10px;
+}
+
+/* Status pills in admin table */
+.admin-status-pill {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+}
+
+.admin-status-active {
+    background: rgba(52, 211, 153, 0.12);
+    color: var(--rf-success);
+}
+
+.admin-status-archived {
+    background: rgba(157, 157, 165, 0.1);
+    color: var(--rf-text-muted);
+}
+
+/* Admin table tweaks */
+.admin-table th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--rf-text-muted);
+    white-space: nowrap;
+}
+
+.admin-deal-name {
+    font-weight: 500;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-actions {
+    white-space: nowrap;
+}
+
+.admin-actions .btn-outline {
+    padding: 0.2rem 0.6rem;
+    font-size: 0.75rem;
+}
+
+/* Admin nav link */
+.nav-admin-link {
+    color: var(--rf-gold) !important;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .admin-filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .admin-search-input,
+    .admin-filter-select {
+        min-width: 100%;
+    }
+    .admin-result-count {
+        margin-left: 0;
+        text-align: center;
+    }
+}
+

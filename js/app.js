@@ -119,6 +119,32 @@ function _renderDashboard() {
 }
 
 // -----------------------------------------------------------------------
+// Page: Admin
+// -----------------------------------------------------------------------
+
+function initAdmin() {
+    var user = Store.getUser();
+
+    // Access control: redirect non-admins
+    if (typeof Admin === 'undefined' || !Admin.isAdmin(user)) {
+        showToast('Access denied. Admin privileges required.', 'error');
+        window.location.href = 'dashboard.html';
+        return;
+    }
+
+    UI.renderNav(user);
+
+    // Load all deals from Firestore (async), then render
+    Admin.loadAllDeals().then(function () {
+        Admin.renderAll();
+        Admin.setupEventListeners();
+    }).catch(function (err) {
+        console.error('Admin: failed to load deals', err);
+        showToast('Failed to load admin data.', 'error');
+    });
+}
+
+// -----------------------------------------------------------------------
 // Page: Deal Detail
 // -----------------------------------------------------------------------
 
@@ -127,6 +153,23 @@ function initDealDetail(dealId) {
 
     var deal = Store.getDeal(dealId);
     if (!deal) {
+        // Admin fallback: try fetching from Firestore directly
+        if (typeof Admin !== 'undefined' && Admin.isAdmin(Store.getUser())) {
+            Store.adminGetDeal(dealId).then(function (remoteDeal) {
+                if (!remoteDeal) {
+                    showToast('Deal not found.', 'error');
+                    window.location.href = 'admin.html';
+                    return;
+                }
+                _currentDeal = remoteDeal;
+                UI.renderDealPage(remoteDeal);
+                var storageKey = 'rf401-tab-' + dealId;
+                var savedTab = localStorage.getItem(storageKey) || 'manual_entry';
+                _switchTab(savedTab);
+                _setupDealEventListeners(dealId);
+            });
+            return;
+        }
         showToast('Deal not found.', 'error');
         window.location.href = 'dashboard.html';
         return;
@@ -576,6 +619,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
             initDealDetail(dealId);
+        } else if (page === 'admin') {
+            initAdmin();
         }
     });
 });

@@ -331,6 +331,44 @@ var Store = (function () {
     }
 
     // -----------------------------------------------------------------------
+    // Admin: Firestore queries (no owner_name filter)
+    // -----------------------------------------------------------------------
+
+    function adminGetAllDeals() {
+        if (!_db) return Promise.resolve([]);
+
+        var authPromise = _auth && !_auth.currentUser
+            ? _auth.signInAnonymously()
+            : Promise.resolve();
+
+        return authPromise.then(function () {
+            return _db.collection(COLLECTION).get().then(function (snapshot) {
+                var deals = [];
+                snapshot.forEach(function (doc) {
+                    deals.push(doc.data());
+                });
+                deals.sort(function (a, b) {
+                    return (b.created_at || '').localeCompare(a.created_at || '');
+                });
+                return deals;
+            });
+        });
+    }
+
+    function adminDeleteDeal(dealId) {
+        if (!_db) return Promise.reject(new Error('No database connection'));
+        return _db.collection(COLLECTION).doc(dealId).delete();
+    }
+
+    function adminGetDeal(dealId) {
+        if (!_db) return Promise.resolve(null);
+        return _db.collection(COLLECTION).doc(dealId).get()
+            .then(function (doc) {
+                return doc.exists ? doc.data() : null;
+            });
+    }
+
+    // -----------------------------------------------------------------------
     // Public API
     // -----------------------------------------------------------------------
 
@@ -351,6 +389,9 @@ var Store = (function () {
         setDealInfoItems: setDealInfoItems,
         updateTaskStatus: updateTaskStatus,
         setManualEntry: setManualEntry,
-        setOverrides: setOverrides
+        setOverrides: setOverrides,
+        adminGetAllDeals: adminGetAllDeals,
+        adminDeleteDeal: adminDeleteDeal,
+        adminGetDeal: adminGetDeal
     };
 })();
