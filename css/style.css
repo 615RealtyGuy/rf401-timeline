@@ -1572,10 +1572,12 @@ footer.site-footer small {
     margin-bottom: 1.5rem;
 }
 .auth-logo {
-    width: 60px;
-    height: 60px;
-    border-radius: 10px;
-    margin-bottom: 1rem;
+    max-width: 360px;
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 4px 24px rgba(212, 175, 55, 0.15));
 }
 .auth-error {
     color: var(--rf-danger);
