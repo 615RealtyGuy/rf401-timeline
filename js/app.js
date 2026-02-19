@@ -277,6 +277,12 @@ function _setupDealEventListeners(dealId) {
             return;
         }
 
+        // PDF Deal Card Export
+        if (target.id === 'pdf-export-btn' || target.id === 'pdf-export-btn-cal' || target.closest('#pdf-export-btn') || target.closest('#pdf-export-btn-cal')) {
+            PdfExport.downloadDealCard(_currentDeal);
+            return;
+        }
+
         // ICS Export
         if (target.id === 'ics-export-btn' || target.id === 'ics-export-btn-cal' || target.closest('#ics-export-btn') || target.closest('#ics-export-btn-cal')) {
             Calendar.downloadICS(_currentDeal);

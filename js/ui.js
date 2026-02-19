@@ -297,6 +297,7 @@ var UI = (function () {
         html += '<div class="calendar-header"><h3 class="section-title" style="margin:0;">Timeline Events</h3>';
         if (events.length > 0) {
             html += '<div class="header-btn-group">';
+            html += '<button type="button" class="btn-outline btn-sm" id="pdf-export-btn">\uD83D\uDCC4 Deal Card</button>';
             html += '<button type="button" class="btn-outline btn-sm ics-export-btn" id="ics-export-btn">\uD83D\uDCC5 Export .ics</button>';
             html += '<button type="button" class="btn-outline btn-sm gcal-all-btn" id="gcal-all-btn">';
             html += '<img src="https://www.gstatic.com/images/branding/product/1x/calendar_2020q4_24dp.png" alt="" class="gcal-icon"> Add to Google</button>';
@@ -389,6 +390,7 @@ var UI = (function () {
         // Header with export buttons
         html += '<div class="calendar-header"><h3 class="section-title">Calendar View</h3>';
         html += '<div class="header-btn-group">';
+        html += '<button type="button" class="btn-outline btn-sm" id="pdf-export-btn-cal">\uD83D\uDCC4 Deal Card</button>';
         html += '<button type="button" class="btn-outline btn-sm ics-export-btn" id="ics-export-btn-cal">\uD83D\uDCC5 Export .ics</button>';
         html += '<button type="button" class="btn-outline btn-sm gcal-all-btn" id="gcal-all-btn-cal">';
         html += '<img src="https://www.gstatic.com/images/branding/product/1x/calendar_2020q4_24dp.png" alt="" class="gcal-icon"> Add to Google</button>';
