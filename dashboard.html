@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deals — RF401 Contract Timeline</title>
+    <link rel="icon" type="image/png" href="img/favicon.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="dashboard">
+    <nav class="brand-nav">
+        <div class="container nav-inner">
+            <a href="dashboard.html" class="brand-link">
+                <img src="img/favicon.png" alt="Timeline Tool" class="brand-logo-img">
+                <span class="brand-name">SixOneFive</span>
+                <span class="brand-divider">|</span>
+                <span class="brand-product">RF401 Timeline</span>
+            </a>
+            <div class="nav-right" id="nav-right">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="hero-logo">
+            <img src="img/logo.png" alt="Timeline Tool" class="hero-logo-img">
+        </div>
+
+        <section class="page-header">
+            <h1>Deal Dashboard</h1>
+            <p class="text-secondary">Tennessee RF401 Purchase &amp; Sale Agreement timelines</p>
+        </section>
+
+        <!-- Create Deal -->
+        <details class="create-deal-section" id="create-deal-section">
+            <summary class="gold-btn">+ New Deal</summary>
+            <article class="card" style="margin-top: 1rem;">
+                <form id="create-deal-form">
+                    <div class="grid">
+                        <label>
+                            <span class="form-label">Deal Name <span class="required">*</span></span>
+                            <input type="text" name="name" id="deal-name" placeholder="e.g. 123 Main St — Smith Purchase" required>
+                        </label>
+                        <label>
+                            <span class="form-label">Property Address</span>
+                            <input type="text" name="property_address" id="deal-address" placeholder="123 Summer Ave, Nashville, TN 37209">
+                        </label>
+                    </div>
+                    <div class="grid">
+                        <label>
+                            <span class="form-label">Buyer Name</span>
+                            <input type="text" name="buyer_name" id="deal-buyer" placeholder="Buyer name">
+                        </label>
+                        <label>
+                            <span class="form-label">Seller Name</span>
+                            <input type="text" name="seller_name" id="deal-seller" placeholder="Seller name">
+                        </label>
+                    </div>
+                    <div class="grid">
+                        <label>
+                            <span class="form-label">Binding Agreement Date</span>
+                            <input type="date" name="binding_agreement_date" id="deal-bad">
+                        </label>
+                        <div></div>
+                    </div>
+                    <button type="submit" class="gold-btn">Create Deal</button>
+                </form>
+            </article>
+        </details>
+
+        <!-- Archive Toggle -->
+        <div id="archive-toggle"></div>
+
+        <!-- Deal List -->
+        <section class="deal-list" id="deal-list">
+            <!-- Populated by JS -->
+        </section>
+    </main>
+
+    <footer class="container site-footer">
+        <small>
+            <em>This tool is for organizational help only and is not legal advice.
+            Verify all dates against the signed contract.</em>
+        </small>
+    </footer>
+
+    <div id="toast-container"></div>
+
+    <script src="js/clause-map.js"></script>
+    <script src="js/store.js"></script>
+    <script src="js/materializer.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
