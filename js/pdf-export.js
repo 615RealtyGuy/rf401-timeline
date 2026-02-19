@@ -384,71 +384,72 @@ var PdfExport = (function () {
         y = _sectionTitle(doc, 'CONTRACT TERMS & FINANCIAL INFO', y);
 
         var halfW = (CW - 20) / 2;
+        var rightX = MARGIN + halfW + 20;
 
-        for (var i = 0; i < items.length; i++) {
+        /* Build a label string for an item */
+        function _itemLabel(itm) {
+            var lbl = (itm.label || '').toUpperCase();
+            if (itm.section) lbl += '  \u00B7  ' + itm.section;
+            return lbl;
+        }
+
+        /* Draw one item at (x, startY) with given maxWidth, return height used */
+        function _drawItem(x, startY, itm, maxW) {
+            // Label
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(6.5);
+            _tc(doc, LABEL_GRAY);
+            doc.text(_itemLabel(itm), x, startY);
+
+            // Value
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8.5);
+            _tc(doc, BODY);
+            var val = itm.value || '---';
+            var lines = doc.splitTextToSize(val, maxW);
+            for (var li = 0; li < lines.length; li++) {
+                doc.text(lines[li], x, startY + 11 + li * 10);
+            }
+            return 14 + lines.length * 10;
+        }
+
+        var i = 0;
+        while (i < items.length) {
             var item = items[i];
             var val = item.value || '---';
             var isLong = val.length > 45;
 
             y = _pb(doc, y, 28);
 
-            // Label
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(6.5);
-            _tc(doc, LABEL_GRAY);
-
-            var labelText = (item.label || '').toUpperCase();
-            if (item.section) labelText += '  \u00B7  ' + item.section;
-
-            if (isLong || i % 2 === 0) {
-                // Full width or left column
-                var colX = MARGIN;
-                doc.text(labelText, colX, y);
-
-                // Value
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(8.5);
-                _tc(doc, BODY);
-                var valW = isLong ? CW : halfW;
-                var lines = doc.splitTextToSize(val, valW);
-                for (var li = 0; li < lines.length; li++) {
-                    doc.text(lines[li], colX, y + 11 + li * 10);
-                }
-                y += 14 + lines.length * 10;
-
-                // If long, skip the partner column
-                if (isLong && i + 1 < items.length) continue;
-            }
-
-            // Right column (only for even-index short items followed by another item)
-            if (!isLong && i % 2 === 0 && i + 1 < items.length) {
+            if (isLong) {
+                // Full-width item
+                var h = _drawItem(MARGIN, y, item, CW);
+                y += h;
+                i++;
+            } else if (i + 1 < items.length) {
+                // Try to pair with next item
                 var nextItem = items[i + 1];
                 var nextVal = nextItem.value || '---';
                 var nextLong = nextVal.length > 45;
 
-                if (!nextLong) {
-                    var rx = MARGIN + halfW + 20;
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(6.5);
-                    _tc(doc, LABEL_GRAY);
-                    var nextLabel = (nextItem.label || '').toUpperCase();
-                    if (nextItem.section) nextLabel += '  \u00B7  ' + nextItem.section;
-                    doc.text(nextLabel, rx, y - 14 + 11 - 11); // align with left label
-
-                    // Recompute: draw at same y as left side
-                    // Actually we need to re-align. Let me use a fixed offset from the label y.
-                    var labelY = y - 14 - (1) * 10; // back to where left label was
-                    doc.text(nextLabel, rx, labelY + 10 - 10);
-
-                    doc.setFont('helvetica', 'normal');
-                    doc.setFontSize(8.5);
-                    _tc(doc, BODY);
-                    var rLines = doc.splitTextToSize(nextVal, halfW);
-                    for (var rli = 0; rli < rLines.length; rli++) {
-                        doc.text(rLines[rli], rx, labelY + 10 - 10 + 11 + rli * 10);
-                    }
-                    i++; // skip next since we drew it
+                if (nextLong) {
+                    // Draw left only, next iteration will draw the long one full-width
+                    var hLeft = _drawItem(MARGIN, y, item, halfW);
+                    y += hLeft;
+                    i++;
+                } else {
+                    // Draw both side by side
+                    var rowY = y;
+                    var hL = _drawItem(MARGIN, rowY, item, halfW);
+                    var hR = _drawItem(rightX, rowY, nextItem, halfW);
+                    y += Math.max(hL, hR);
+                    i += 2;
                 }
+            } else {
+                // Last item, draw left only
+                var hSolo = _drawItem(MARGIN, y, item, halfW);
+                y += hSolo;
+                i++;
             }
         }
 
