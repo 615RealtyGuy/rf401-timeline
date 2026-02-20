@@ -296,26 +296,26 @@ function _setupDealEventListeners(dealId) {
             return;
         }
 
-        // Archive/Unarchive/Delete
+        // Archive/Unarchive/Delete (delay redirect to let Firestore sync)
         if (target.id === 'archive-deal-btn') {
             if (confirm('Archive this deal? It will be hidden from the dashboard.')) {
                 Store.updateDeal(dealId, { status: 'archived' });
                 showToast('Deal archived.', 'success');
-                window.location.href = 'dashboard.html';
+                setTimeout(function () { window.location.href = 'dashboard.html'; }, 600);
             }
             return;
         }
         if (target.id === 'unarchive-deal-btn') {
             Store.updateDeal(dealId, { status: 'active' });
             showToast('Deal restored.', 'success');
-            window.location.reload();
+            setTimeout(function () { window.location.reload(); }, 600);
             return;
         }
         if (target.id === 'delete-deal-btn') {
             if (confirm('Permanently delete this deal and ALL associated data? This cannot be undone.')) {
                 Store.deleteDeal(dealId);
                 showToast('Deal deleted.', 'success');
-                window.location.href = 'dashboard.html';
+                setTimeout(function () { window.location.href = 'dashboard.html'; }, 600);
             }
             return;
         }
