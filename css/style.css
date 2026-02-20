@@ -181,6 +181,12 @@ small { color: var(--rf-text-muted); }
     object-fit: cover;
 }
 
+.brand-nav-logo {
+    height: 36px;
+    width: auto;
+    object-fit: contain;
+}
+
 /* ---- Hero logo (index page) ---- */
 .hero-logo {
     text-align: center;
@@ -917,6 +923,7 @@ footer.site-footer small {
     .deal-meta-grid { gap: 1rem; }
     .tab-btn { padding: 0.5rem 0.65rem; font-size: 0.8rem; }
     .brand-nav { padding: 0.5rem 1rem; }
+    .brand-nav-logo { height: 28px; }
 }
 
 /* ---------------------------------------------------------------------------
