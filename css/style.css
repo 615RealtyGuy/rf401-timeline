@@ -182,7 +182,7 @@ small { color: var(--rf-text-muted); }
 }
 
 .brand-nav-logo {
-    height: 36px;
+    height: 50px;
     width: auto;
     object-fit: contain;
 }
@@ -923,7 +923,7 @@ footer.site-footer small {
     .deal-meta-grid { gap: 1rem; }
     .tab-btn { padding: 0.5rem 0.65rem; font-size: 0.8rem; }
     .brand-nav { padding: 0.5rem 1rem; }
-    .brand-nav-logo { height: 28px; }
+    .brand-nav-logo { height: 38px; }
 }
 
 /* ---------------------------------------------------------------------------
